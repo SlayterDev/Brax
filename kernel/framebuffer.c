@@ -31,6 +31,9 @@ static unsigned int fb_x, fb_y, pitch;
 /* Max x/y character cell */
 static unsigned int max_x, max_y;
 
+static void newline();
+void console_write(char *text);
+
 void fb_init() {
 	uint32_t var;
 	uint32_t count;
@@ -149,10 +152,13 @@ void fb_init() {
 	console_write(COLOUR_PUSH BG_BLUE BG_HALF FG_CYAN
 			"Framebuffer initialised. Address = 0x");
 	//console_write(tohex(physicalScreenbase, sizeof(physicalScreenbase)));
+	newline();
 	console_write(" (physical), 0x");
 	//console_write(tohex(screenbase, sizeof(screenbase)));
+	newline();
 	console_write(" (virtual), size = 0x");
 	//console_write(tohex(screensize, sizeof(screensize)));
+	newline();
 	console_write(", resolution = ");
 	//console_write(todec(fb_x, 0));
 	console_write("x");
@@ -196,10 +202,10 @@ static void newline()
 
 	/* Calculate the address to copy the screen data from */
 	source = screenbase + rowbytes;
-	//memmove((void *)screenbase, (void *)source, (max_y-1)*rowbytes);
+	memmove((void *)screenbase, (void *)source, (max_y-1)*rowbytes);
 
 	/* Clear last line on screen */
-	//memclr((void *)(screenbase + (max_y-1)*rowbytes), rowbytes);
+	memclr((void *)(screenbase + (max_y-1)*rowbytes), rowbytes);
 }
 
 void console_write(char *text)

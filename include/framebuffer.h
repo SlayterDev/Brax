@@ -3,8 +3,7 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include "lib/common.h"
 
 /* Control characters for the console */
 #define FG_RED "\001"
