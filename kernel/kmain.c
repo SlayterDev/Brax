@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "interrupt.h"
+#include "framebuffer.h"
 
 extern void goLed();
 extern void noLed();
@@ -12,6 +13,7 @@ int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	(void)r1;
 	(void)atags;
 
+	fb_init();
 	init_interrupts();
 
 	while (1);
