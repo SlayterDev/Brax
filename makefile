@@ -1,4 +1,4 @@
-SOURCES := kernel/boot.o kernel/kmain.o
+SOURCES := kernel/boot.o kernel/kmain.o kernel/led.o kernel/interrupt.o
 
 INC=-include
 
