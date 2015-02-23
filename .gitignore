@@ -1,0 +1,5 @@
+*/*.o
+*.elf
+kernel.img
+.DS_Store
+
