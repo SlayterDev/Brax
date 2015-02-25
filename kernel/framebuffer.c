@@ -188,12 +188,16 @@ void drawPixel(int x, int y, int val) {
 }
 
 void drawChar(int x, int y, char c);
+void monPuts(const char *str);
+void monPut(char c);
 
 void drawStuff() {
 	//for (int i = 0; i < 10; i++)
 		//drawPixel(100, 100, 0b0000011111111111);
 
 	drawChar(100, 95, 'a');
+	monPuts("Hello, World!\n");
+	monPuts("Next line? :D\n");
 }
 
 /* Move to a new line, and, if at the bottom of the screen, scroll the
@@ -228,6 +232,7 @@ void drawChar(int x, int y, char c) {
 	unsigned char ch = c - 32;
 
 	for (int row = 0; row < CHARSIZE_Y; row++) {
+		//int col;
 		for (int col = CHARSIZE_X-2; col >= 0; col--) {
 			if (row < (CHARSIZE_Y-1) && (teletext[ch][row] & (1 << col))) {
 				// draw a pixel
@@ -237,7 +242,29 @@ void drawChar(int x, int y, char c) {
 				drawPixel(x+(CHARSIZE_X-col), y+row, 0b0000000000011111);
 			}
 		}
+
+		drawPixel(x+CHARSIZE_X+1, y+row, 0b0000000000011111);
 	}
+}
+
+void monPut(char c) {
+	if (c == '\n') {
+		newline();
+		return;
+	}
+
+	drawChar(consx*CHARSIZE_X, consy*CHARSIZE_Y, c);
+
+	consx++;
+	if (consx >= max_x) {
+		newline();
+	}
+}
+
+void monPuts(const char *str) {
+	int i = 0;
+	while (str[i])
+		monPut(str[i++]);
 }
 
 void console_write(char *text)
