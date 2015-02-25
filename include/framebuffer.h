@@ -30,5 +30,6 @@
 #define BG_HALF "\031"
 
 void fb_init();
+void drawStuff();
 
 #endif

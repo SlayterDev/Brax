@@ -180,6 +180,22 @@ static unsigned short int bgcolour = 0;
 static unsigned int colour_stack[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 static unsigned int colour_sp = 8;
 
+void drawPixel(int x, int y, int val) {
+	volatile unsigned short int *ptr;
+	unsigned int addr = y*pitch + x*2;
+	ptr = (unsigned short int *)(screenbase+addr);
+	*ptr = val;
+}
+
+void drawChar(int x, int y, char c);
+
+void drawStuff() {
+	//for (int i = 0; i < 10; i++)
+		//drawPixel(100, 100, 0b0000011111111111);
+
+	drawChar(100, 95, 'a');
+}
+
 /* Move to a new line, and, if at the bottom of the screen, scroll the
  * framebuffer 1 character row upwards, discarding the top row
  */
@@ -206,6 +222,22 @@ static void newline()
 
 	/* Clear last line on screen */
 	memclr((void *)(screenbase + (max_y-1)*rowbytes), rowbytes);
+}
+
+void drawChar(int x, int y, char c) {
+	unsigned char ch = c - 32;
+
+	for (int row = 0; row < CHARSIZE_Y; row++) {
+		for (int col = CHARSIZE_X-2; col >= 0; col--) {
+			if (row < (CHARSIZE_Y-1) && (teletext[ch][row] & (1 << col))) {
+				// draw a pixel
+				drawPixel(x+(CHARSIZE_X-col), y+row, 0b0000011111111111);
+			} else {
+				// background
+				drawPixel(x+(CHARSIZE_X-col), y+row, 0b0000000000011111);
+			}
+		}
+	}
 }
 
 void console_write(char *text)

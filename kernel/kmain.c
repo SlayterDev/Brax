@@ -14,6 +14,7 @@ int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	(void)atags;
 
 	fb_init();
+	drawStuff();
 	init_interrupts();
 
 	while (1);
