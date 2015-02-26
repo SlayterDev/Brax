@@ -4,6 +4,8 @@
 #include "mailbox.h"
 #include "teletext.h"
 
+#include "lib/string.h"
+
 /* Mailbox call to get screen resolution failed */
 #define FBFAIL_GET_RESOLUTION		1
 /* Mailbox call returned bad resolution */
@@ -149,21 +151,17 @@ void fb_init() {
 	max_x = fb_x / CHARSIZE_X;
 	max_y = fb_y / CHARSIZE_Y;
 
-	console_write(COLOUR_PUSH BG_BLUE BG_HALF FG_CYAN
-			"Framebuffer initialised. Address = 0x");
-	//console_write(tohex(physicalScreenbase, sizeof(physicalScreenbase)));
-	newline();
-	console_write(" (physical), 0x");
-	//console_write(tohex(screenbase, sizeof(screenbase)));
-	newline();
-	console_write(" (virtual), size = 0x");
-	//console_write(tohex(screensize, sizeof(screensize)));
-	newline();
-	console_write(", resolution = ");
-	//console_write(todec(fb_x, 0));
-	console_write("x");
-	//console_write(todec(fb_y, 0));
-	console_write(COLOUR_POP "\n");
+	monPuts("Framebuffer initialised. Address = ");
+	monPutHex(physicalScreenbase);
+	monPuts(" (physical), ");
+	monPutHex(screenbase);
+	monPuts(" (virtual), \nsize = ");
+	monPutHex(screensize);
+	monPuts(", resolution = ");
+	monPutDec(fb_x);
+	monPuts("x");
+	monPutDec(fb_y);
+	monPut('\n');
 }
 
 /* Current console text cursor position (ie. where the next character will
@@ -265,6 +263,62 @@ void monPuts(const char *str) {
 	int i = 0;
 	while (str[i])
 		monPut(str[i++]);
+}
+
+void monPutHex(uint32_t n) {
+	static char hex [] = { '0', '1', '2', '3', '4', '5', '6', '7',
+                        '8', '9' ,'A', 'B', 'C', 'D', 'E', 'F' };
+
+	char buffer[16];
+
+	int len = 0, k = 0;
+	do {
+		buffer[len] = hex[n&0xF];
+		len++;
+		n >>= 4;
+	} while (n != 0);
+
+	for (; k < len/2; k++) {
+		buffer[k] ^= buffer[len-k-1];
+		buffer[len-k-1] ^= buffer[k];
+		buffer[k] ^= buffer[len-k-1];
+	}
+
+	buffer[len] = '\0';
+
+	char pre[100] = "0x\0";
+
+	strcat(pre, buffer);
+
+	monPuts(pre);
+}
+
+void monPutDec(int n) {
+	if (n == 0) {
+        monPut('0');
+        return;
+    } else if (n < 0) {
+    	monPut('-');
+    	n = -n;
+    }
+
+    int acc = n;
+    char c[32];
+    int i = 0;
+    while (acc > 0) {
+        c[i] = '0' + acc%10;
+        acc /= 10;
+        i++;
+    }
+    c[i] = 0;
+
+    char c2[32];
+    c2[i--] = 0;
+    int j = 0;
+    while(i >= 0) {
+        c2[i--] = c[j++];
+    }
+    monPuts(c2);
 }
 
 void console_write(char *text)

@@ -32,4 +32,9 @@
 void fb_init();
 void drawStuff();
 
+void monPut(char c);
+void monPuts(const char *str);
+void monPutHex(uint32_t n);
+void monPutDec(int n);
+
 #endif
