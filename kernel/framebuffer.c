@@ -170,13 +170,8 @@ void fb_init() {
 static int consx = 0;
 static int consy = 0;
 
-/* Current fg/bg colour */
-static unsigned short int fgcolour = 0xffff;
-static unsigned short int bgcolour = 0;
-
-/* A small stack to allow temporary colour changes in text */
-static unsigned int colour_stack[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-static unsigned int colour_sp = 8;
+static unsigned int foreground = FG_WHITE;
+static unsigned int background = BG_BLACK;
 
 void drawPixel(int x, int y, int val) {
 	volatile unsigned short int *ptr;
@@ -186,14 +181,8 @@ void drawPixel(int x, int y, int val) {
 }
 
 void drawChar(int x, int y, char c);
-void monPuts(const char *str);
-void monPut(char c);
 
 void drawStuff() {
-	//for (int i = 0; i < 10; i++)
-		//drawPixel(100, 100, 0b0000011111111111);
-
-	drawChar(100, 95, 'a');
 	monPuts("Hello, World!\n");
 	monPuts("Next line? :D\n");
 }
@@ -208,7 +197,7 @@ static void newline()
 	register unsigned int rowbytes = CHARSIZE_Y * pitch;
 
 	consx = 0;
-	if(consy<(max_y-1))
+	if((unsigned int)consy < (max_y - 1))
 	{
 		consy++;
 		return;
@@ -234,15 +223,20 @@ void drawChar(int x, int y, char c) {
 		for (int col = CHARSIZE_X-2; col >= 0; col--) {
 			if (row < (CHARSIZE_Y-1) && (teletext[ch][row] & (1 << col))) {
 				// draw a pixel
-				drawPixel(x+(CHARSIZE_X-col), y+row, 0b0000011111111111);
+				drawPixel(x+(CHARSIZE_X-col), y+row, foreground);
 			} else {
 				// background
-				drawPixel(x+(CHARSIZE_X-col), y+row, 0b0000000000011111);
+				drawPixel(x+(CHARSIZE_X-col), y+row, background);
 			}
 		}
 
-		drawPixel(x+CHARSIZE_X+1, y+row, 0b0000000000011111);
+		drawPixel(x+CHARSIZE_X+1, y+row, background);
 	}
+}
+
+void monSetColor(unsigned int bg, unsigned int fg) {
+	foreground = fg;
+	background = bg;
 }
 
 void monPut(char c) {
@@ -254,9 +248,21 @@ void monPut(char c) {
 	drawChar(consx*CHARSIZE_X, consy*CHARSIZE_Y, c);
 
 	consx++;
-	if (consx >= max_x) {
+	if ((unsigned int)consx >= max_x) {
 		newline();
 	}
+}
+
+void monClear() {
+	consx = 0;
+	consy = 0;
+	for (unsigned int i = 0; i < max_y; i++) {
+		for (unsigned int j = 0; j < max_x; j++) {
+			monPut(' ');
+		}
+	}
+	consx = 0;
+	consy = 0;
 }
 
 void monPuts(const char *str) {
@@ -319,108 +325,4 @@ void monPutDec(int n) {
         c2[i--] = c[j++];
     }
     monPuts(c2);
-}
-
-void console_write(char *text)
-{
-	volatile unsigned short int *ptr;
-
-	unsigned int row, addr;
-	int col;
-	unsigned char ch;
-
-	/* Double parentheses to silence compiler warnings about
-	 * assignments as boolean values
-	 */
-	while((ch = (unsigned char)*text))
-	{
-		text++;
-
-		/* Deal with control codes */
-		switch(ch)
-		{
-			case 1: fgcolour = 0b1111100000000000; continue;
-			case 2: fgcolour = 0b0000011111100000; continue;
-			case 3: fgcolour = 0b0000000000011111; continue;
-			case 4: fgcolour = 0b1111111111100000; continue;
-			case 5: fgcolour = 0b1111100000011111; continue;
-			case 6: fgcolour = 0b0000011111111111; continue;
-			case 7: fgcolour = 0b1111111111111111; continue;
-			case 8: fgcolour = 0b0000000000000000; continue;
-				/* Half brightness */
-			case 9: fgcolour = (fgcolour >> 1) & 0b0111101111101111; continue;
-			case 10: newline(); continue;
-			case 11: /* Colour stack push */
-				if(colour_sp)
-					colour_sp--;
-				colour_stack[colour_sp] =
-					fgcolour | (bgcolour<<16);
-				continue;
-			case 12: /* Colour stack pop */
-				fgcolour = colour_stack[colour_sp] & 0xffff;
-				bgcolour = colour_stack[colour_sp] >> 16;
-				if(colour_sp<8)
-					colour_sp++;
-				continue;
-			case 17: bgcolour = 0b1111100000000000; continue;
-			case 18: bgcolour = 0b0000011111100000; continue;
-			case 19: bgcolour = 0b0000000000011111; continue;
-			case 20: bgcolour = 0b1111111111100000; continue;
-			case 21: bgcolour = 0b1111100000011111; continue;
-			case 22: bgcolour = 0b0000011111111111; continue;
-			case 23: bgcolour = 0b1111111111111111; continue;
-			case 24: bgcolour = 0b0000000000000000; continue;
-				/* Half brightness */
-			case 25: bgcolour = (bgcolour >> 1) & 0b0111101111101111; continue;
-		}
-
-		/* Unknown control codes, and anything >127, get turned into
-		 * spaces. Anything >=32 <=127 gets 32 subtracted from it to
-		 * turn it into a value between 0 and 95, to index into the
-		 * character definitions table
-		 */
-		if(ch<32)
-		{
-			ch=0;
-		}
-		else
-		{
-			if(ch>127)
-				ch=0;
-			else
-				ch-=32;
-		}
-
-		/* Plot character onto screen
-		 *
-		 * CHARSIZE_Y and CHARSIZE_X are the size of the block the
-		 * character occupies. The character itself is one pixel
-		 * smaller in each direction, and is located in the upper left
-		 * of the block
-		 */
-		for(row=0; row<CHARSIZE_Y; row++)
-		{
-			addr = (row+consy*CHARSIZE_Y)*pitch + consx*CHARSIZE_X*2;
-
-			for(col=(CHARSIZE_X-2); col>=0; col--)
-			{
-				ptr = (unsigned short int *)(screenbase+addr);
-
-				addr+=2;
-
-				if(row<(CHARSIZE_Y-1) && (teletext[ch][row] & (1<<col)))
-					*ptr = fgcolour;
-				else
-					*ptr = bgcolour;
-			}
-
-			ptr = (unsigned short int *)(screenbase+addr);
-			*ptr = bgcolour;
-		}
-
-		if(++consx >=max_x)
-		{
-			newline();
-		}
-	}
 }

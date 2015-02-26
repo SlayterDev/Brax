@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define DEBUG 0
+
 // Memory utils
 void *memmove(void *dest, const void *source, size_t len);
 int memcmp(const void *aptr, const void *bptr, size_t len);
