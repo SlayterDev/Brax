@@ -19,7 +19,7 @@ int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	drawStuff();
 	init_interrupts();
 
-	kprintf(K_OK, "Kernel boots ok ;D\n");
+	kprintf(K_OK, "Kernel boots ok ;D \\ H^H _ ` | ~ { } #\n");
 	kprintf(K_INFO, "The meaning of life is %d\n", 42);
 
 	while (1);
