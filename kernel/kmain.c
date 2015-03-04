@@ -10,6 +10,7 @@ extern void goLed();
 extern void noLed();
 extern void delay();
 extern unsigned int *activate(unsigned int *stack);
+extern void yeild();
 
 #define STACK_SIZE 256
 #define THREAD_PSP	0xFFFFFFFD
@@ -23,16 +24,10 @@ unsigned int *createTask(unsigned int *stack, void (*start)(void)) {
 	kprintf(K_INFO, "Stack is: %x\n", stack[0]);
 
 	unsigned int *stack_start = stack + STACK_SIZE - 16;
-	if (first) {
-		stack_start[0] = 0x10; // User mode
-		stack_start[1] = (unsigned int)start;
-		first = 0;
-		kprintf(K_INFO, "Target: %x, loaded: %x\n", (unsigned int)start, stack_start[1]);
-	} else {
-		stack[8] = (unsigned int)THREAD_PSP;
-		stack[15] = (unsigned int)start;
-		stack[16] = (unsigned int)0x01000000;
-	}
+	stack_start[0] = 0x10; // User mode
+	stack_start[1] = (unsigned int)start;
+	first = 0;
+	
 	stack = activate(stack_start);
 
 	return stack;
@@ -40,7 +35,18 @@ unsigned int *createTask(unsigned int *stack, void (*start)(void)) {
 
 void task1() {
 	kprintf(K_OK, "Task 1 churning away in user land. Take it away kernel\n");
-	asm volatile("svc 0");
+	while (1) {
+		yeild();
+		kprintf(K_OK, "We're back 1\n");
+	}
+}
+
+void task2() {
+	kprintf(K_OK, "Task 1 churning away in user land. Take it away kernel\n");
+	while (1) {
+		yeild();
+		kprintf(K_OK, "We're back 2\n");
+	}
 }
 
 int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
@@ -59,7 +65,18 @@ int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	unsigned int *usertasks[2];
 
 	usertasks[0] = createTask(user_stacks[0], &task1);
+	usertasks[1] = createTask(user_stacks[1], &task2);
 	kprintf(K_OK, "Kernel is back!\n");
+	kprintf(K_INFO, "Going back in!\n");
+	usertasks[0] = activate(usertasks[0]);
+	kprintf(K_INFO, "One more again!\n");
+	usertasks[1] = activate(usertasks[1]);
+	kprintf(K_INFO, "Going back in!\n");
+	usertasks[0] = activate(usertasks[0]);
+	kprintf(K_INFO, "One more again!\n");
+	usertasks[1] = activate(usertasks[1]);
+
+	kprintf(K_OK, "A\'ight chill B)\n");
 
 	while (1);
 

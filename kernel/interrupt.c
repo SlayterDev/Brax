@@ -17,7 +17,7 @@ int ledStatus = 0;
 __attribute__ ((naked, aligned(32))) static void interruptVectors(void) {
 	asm volatile("b badException\n"
 		"b badException\n"
-		"b interruptSWI\n"
+		"b toKernel\n"
 		"b interruptPrefetchAbort\n"
 		"b interruptDataAbort\n"
 		"b badException\n"
@@ -38,8 +38,10 @@ __attribute__ ((interrupt ("SWI"))) void interruptSWI(void) {
 	addr -= 4;
 	swiNo = *((unsigned int *) addr) & 0x00FFFFFF;
 
-	if (swiNo == 0)
-		toKernel();
+	kprintf(K_INFO, "Invoked!!!!!! %d\n", swiNo);
+
+	//if (swiNo == 0)
+	toKernel();
 }
 
 __attribute__ ((interrupt ("IRQ"))) void interruptIRQ(void) {
