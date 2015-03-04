@@ -6,24 +6,18 @@ toKernel:
 
 	/* Load kernel state */
 	pop {r4, r5, r6, r7, r8, r9, r10, r11, ip, lr}
-	msr cpsr_all, ip
+	msr cpsr, ip
 
 	bx lr
 
 .global activate
 activate:
-	/* Save kernel state */
-	mrs ip, cpsr
-	push {r4, r5, r6, r7, r8, r9, r10, r11, ip, lr}
+	ldmfd r0!, {ip, lr}
+	msr spsr, ip
 
-	/* Switch to process stack */
+	msr cpsr_c, #0xDF /* System Mode */
 	mov sp, r0
-	mov r0, #3
-	msr control, r0
-	isb
+	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+	msr cpsr_c, #0xD3 /* Supervisor Mode */
 
-	/* load user state */
-	pop {r4, r5, r6, r7, r8, r9, r10, r11, lr}
-
-	/* jump to user task */
-	bx lr
+	movs pc, lr

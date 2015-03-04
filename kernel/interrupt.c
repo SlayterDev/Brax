@@ -5,6 +5,7 @@
 
 extern void goLed();
 extern void noLed();
+extern void toKernel();
 
 static volatile unsigned int *irqEnableBasic = (unsigned int *)0x2000b218;
 static volatile unsigned int *armTimerIRQClear = (unsigned int *)0x2000b40c;
@@ -37,7 +38,8 @@ __attribute__ ((interrupt ("SWI"))) void interruptSWI(void) {
 	addr -= 4;
 	swiNo = *((unsigned int *) addr) & 0x00FFFFFF;
 
-	kprintf(K_INFO, "SWI No: %d\n", swiNo);
+	if (swiNo == 0)
+		toKernel();
 }
 
 __attribute__ ((interrupt ("IRQ"))) void interruptIRQ(void) {
