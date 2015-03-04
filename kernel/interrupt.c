@@ -1,6 +1,7 @@
 // interrupt.c -- Brad Slayter
 
 #include "interrupt.h"
+#include "lib/stdio.h"
 
 extern void goLed();
 extern void noLed();
@@ -36,7 +37,7 @@ __attribute__ ((interrupt ("SWI"))) void interruptSWI(void) {
 	addr -= 4;
 	swiNo = *((unsigned int *) addr) & 0x00FFFFFF;
 
-
+	kprintf(K_INFO, "SWI No: %d\n", swiNo);
 }
 
 __attribute__ ((interrupt ("IRQ"))) void interruptIRQ(void) {

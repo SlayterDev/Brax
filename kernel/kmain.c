@@ -22,6 +22,10 @@ int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	kprintf(K_OK, "Kernel boots ok ;D \\ H^H _ ` | ~ { } #\n");
 	kprintf(K_INFO, "The meaning of life is %d\n", 42);
 
+	asm volatile("svc 0");
+
+	kprintf(K_OK, "Annnnnd we're back.\n");
+
 	while (1);
 
 	return 0;
