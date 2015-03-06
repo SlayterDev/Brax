@@ -43,6 +43,6 @@ kickIt:
 
 	/* Load the new task */
 	mov sp, r1
-	pop {r4, r5, r6, r7, r8, r9, r10, fp, ip lr}
+	pop {r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
 
 	bx lr /* Jump to where we left off */
