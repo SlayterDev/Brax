@@ -1,6 +1,6 @@
 SOURCES := kernel/boot.o kernel/kmain.o kernel/led.o kernel/interrupt.o kernel/mailbox.o \
 kernel/framebuffer.o lib/common.o lib/string.o lib/stdio.o kernel/tasking.o \
-mm/blk.o
+mm/blk.o kernel/scheduler.o
 
 INC=-include
 

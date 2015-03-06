@@ -3,6 +3,7 @@
 
 #include "interrupt.h"
 #include "framebuffer.h"
+#include "scheduler.h"
 
 #include "lib/stdio.h"
 
@@ -62,6 +63,8 @@ int kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 
 	kprintf(K_OK, "Kernel boots ok ;D \\ H^H _ ` | ~ { } #\n");
 	kprintf(K_INFO, "The meaning of life is %d\n", 42);
+
+	initTasking();
 
 	/*unsigned int user_stacks[2][STACK_SIZE];
 	unsigned int *usertasks[2];

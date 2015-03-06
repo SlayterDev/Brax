@@ -38,11 +38,25 @@ activate:
 .global kickIt
 kickIt:
 	/* Save current task state */
+	stmfd r0!, {r4-r11, ip, lr}
+
+	/* Load the new task */
+	ldmfd r1!, {r4-r11, ip, lr}
+
+	movs pc, lr /* Jump to where we left off */
+
+.global spawn
+spawn:
+	/* Save current task state */
 	push {r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
 	mov r0, sp
 
-	/* Load the new task */
-	mov sp, r1
-	pop {r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+	ldmfd r1!, {lr}
 
-	bx lr /* Jump to where we left off */
+	movs pc, lr /* Jump to where we left off */
+
+.global testSpawn
+testSpawn:
+	ldmfd r0!, {lr}
+
+	movs pc, lr
