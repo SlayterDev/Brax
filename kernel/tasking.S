@@ -34,3 +34,15 @@ activate:
 	msr cpsr_c, #0xD3 /* Supervisor Mode */
 
 	movs pc, lr
+
+.global kickIt
+kickIt:
+	/* Save current task state */
+	push {r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+	mov r0, sp
+
+	/* Load the new task */
+	mov sp, r1
+	pop {r4, r5, r6, r7, r8, r9, r10, fp, ip lr}
+
+	bx lr /* Jump to where we left off */
