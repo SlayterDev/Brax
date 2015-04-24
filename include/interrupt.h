@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+void reset_timer();
 void init_interrupts();
 
 #endif

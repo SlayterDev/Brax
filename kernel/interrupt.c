@@ -1,6 +1,7 @@
 // interrupt.c -- Brad Slayter
 
 #include "interrupt.h"
+#include "scheduler.h"
 #include "lib/stdio.h"
 
 extern void goLed();
@@ -26,6 +27,7 @@ __attribute__ ((naked, aligned(32))) static void interruptVectors(void) {
 }
 
 __attribute__ ((naked)) void badException(void) {
+	kprintf(K_ERROR, "Bad instructions");
 	while (1);
 }
 
@@ -44,7 +46,8 @@ __attribute__ ((interrupt ("SWI"))) void interruptSWI(void) {
 }
 
 __attribute__ ((interrupt ("IRQ"))) void interruptIRQ(void) {
-	*armTimerIRQClear = 0;
+	kprintf(K_INFO, "interrupted!!!");
+
 	if (ledStatus) {
 		noLed();
 		ledStatus = 0;
@@ -52,6 +55,46 @@ __attribute__ ((interrupt ("IRQ"))) void interruptIRQ(void) {
 		goLed();
 		ledStatus = 1;
 	}
+
+	reset_timer();
+
+	// Push all regs into IRQ mode stack
+	/*asm volatile("push {R0-R12}");
+	// Put LR register from IRQ Mode (PC of interrupted task) in R0
+	asm volatile("mov R0, LR");
+	// Change to system mode
+	asm volatile("cps #0x1F");
+	// Push R0 (interrupted pc) onto system stack
+	asm volatile("push {R0}");
+	// Return to IRQ mode
+	asm volatile("cps #0x12");
+	// Pop all registers again
+	asm volatile("pop {R0-R12}");
+	// Return to system mode
+	asm volatile("cps #0x1F");
+	// Push all regs onto system stack
+	asm volatile("push {R0-R12}");
+	// Push interrupted LR to system stack
+	asm volatile("push {LR}");
+	// Copy processor state to R0
+	asm volatile("mrs R0, SPSR");
+	// Push the processor status to the system stack
+	asm volatile("push {R0}");
+	// Return to IRQ mode
+	asm volatile("cps #0x12");
+	// Copy LR to R0
+	asm volatile("mov R0, LR");
+	// Back to system mode again
+	asm volatile("cps #0x1F");
+
+	unsigned long pc;
+	unsigned long stack_pointer;
+
+	asm volatile("mov %0, R0\n\t" : "=r" (pc));
+	asm volatile("mov %0, sp\n\t" : "=r" (stack_pointer));
+
+	// jump to scheduler
+	schedule(stack_pointer, pc);*/
 }
 
 __attribute__ ((interrupt ("ABORT"))) void interruptDataAbort(void) {
@@ -60,6 +103,10 @@ __attribute__ ((interrupt ("ABORT"))) void interruptDataAbort(void) {
 
 __attribute__ ((interrupt ("ABORT"))) void interruptPrefetchAbort(void) {
 
+}
+
+void reset_timer() {
+	*armTimerIRQClear = 0;
 }
 
 void init_interrupts() {

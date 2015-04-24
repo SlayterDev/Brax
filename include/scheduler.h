@@ -6,10 +6,14 @@
 typedef struct task {
 	struct task *next;
 	int pid;
-	unsigned int *stack;
+	unsigned long stack;
+	unsigned long pc;
+	unsigned int times_loaded;
 } task_t;
 
-void initTasking();
+void init_tasking();
+void fork(unsigned long *pc);
 void spawnTask(void (*start)(void));
+void schedule(unsigned long stack_pointer, unsigned long pc);
 
 #endif
